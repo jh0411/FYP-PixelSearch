@@ -17,8 +17,11 @@ const ipfs = ipfsClient({ host: 'ipfs.infura.io', port: 5001, protocol: 'https' 
 
 var toBuffer = require('typedarray-to-buffer')
 var ACCESS_TOKEN_SECRET = crypto.randomBytes(256).toString('hex')
+var encImgHash
+var fileLink
 var imgHash
 var imgIndex
+var imgIndex1
 var token
 var convEncImg
 var verifyToken
@@ -90,8 +93,9 @@ class App extends Component {
       account: '',
       buffer: null,
       contract: null,
-      fileLink: 'null',
+      fileLink: '',
       imgHash: '',
+      encImgHash: '',
       files: [],
       loading: false,
       name: null,
@@ -140,6 +144,7 @@ class App extends Component {
     convEncImg = toBuffer(encImg)
     console.log('Encrypted Image', convEncImg)
 
+
     verifyToken = jwtAuth.verifyToken(token, ACCESS_TOKEN_SECRET);
 
     if (verifyToken) {
@@ -147,6 +152,19 @@ class App extends Component {
 
       // Add file to the IPFS
       ipfs.add(convEncImg, (error, result) => {
+        encImgHash = new CID(result[0].hash).toV1().toString('base32')
+        this.setState({ encImgHash })
+        //console.log('IPFS result', result)
+
+        if (error) {
+          console.error(error)
+          return
+        }
+        this.setState({ loading: true })
+      })
+
+      // Add file to the IPFS
+      ipfs.add(this.state.buffer, (error, result) => {
         imgHash = new CID(result[0].hash).toV1().toString('base32')
         this.setState({ imgHash })
         //console.log('IPFS result', result)
@@ -174,7 +192,11 @@ class App extends Component {
               else {
                 console.log(res)
                 imgIndex = imageIndex.addImgIDHash(encryptTag, imgHash)
-                console.log('Image Submitted', imgIndex)
+                imgIndex1 = imageIndex.addEncryptImgHash(encryptTag, encImgHash)
+                fileLink = 'https://ipfs.infura.io/ipfs/' + encImgHash
+                console.log('Image Submitted', imgIndex1)
+                console.log("Encrypted Image link: ", fileLink)
+                console.timeStamp(imgIndex)
               }
             }).on('transactionHash', (hash) => {
               this.setState({
@@ -182,7 +204,6 @@ class App extends Component {
                 type: null,
                 name: null
               })
-              //window.location.reload()
             }).on('error', (e) => {
               window.alert('Error')
               this.setState({ loading: false })
@@ -227,13 +248,16 @@ class App extends Component {
               type: null,
               name: null
             })
-            //window.location.reload()
           }).on('error', (e) => {
             window.alert('Error')
             this.setState({ loading: false })
           })
       }
     }
+    var decImg = imageEncryption.fileDecryption(this.state.buffer)
+    var convDecImg = new Uint8Array([])
+    convDecImg = toBuffer(decImg)
+    console.log('Decrypted Image Buffer', convDecImg)
   }
 
   //var b64EncImg = Buffer.from(convEncImg).toString('base64')
