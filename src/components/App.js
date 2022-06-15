@@ -257,7 +257,6 @@ class App extends Component {
     var decImg = imageEncryption.fileDecryption(this.state.buffer)
     var convDecImg = new Uint8Array([])
     convDecImg = toBuffer(decImg)
-    console.log('Decrypted Image Buffer', convDecImg)
   }
 
   //var b64EncImg = Buffer.from(convEncImg).toString('base64')
