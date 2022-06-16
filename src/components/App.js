@@ -81,6 +81,7 @@ class App extends Component {
           files: [...this.state.files, image]
         })
       }
+      console.log(this.state.files)
     } else {
       window.alert('Smart contract not deployed to detected network.')
     }
