@@ -31,7 +31,7 @@ var indexMethods = {
 
     searchImg: function(imgLabel){
         var isFound = false;
-        for(var i = 0; !isFound && i < imageIndexTable.length; i++){
+        for(var i = 0; i < imageIndexTable.length; i++){
             if(imgLabel === imageIndexTable[i][0]){
                 console.log("Image data found: ", "https://ipfs.infura.io/ipfs/" + imageIndexTable[i][1])
                 sessionStorage.setItem("retrieveLink", "https://ipfs.infura.io/ipfs/" + imageIndexTable[i][1]);
