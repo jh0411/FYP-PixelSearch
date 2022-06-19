@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import ImgHash from '../abis/ImgHash.json';
-import imageEncryption from './ImgEnc';
+import cryptMethods from './ImgEnc';
 import imageIndex from './ImgIndex';
 import jwtAuth from './jwtAuth';
 import UINavBar from './UINavBar';
@@ -12,11 +12,11 @@ import './App.css';
 const crypto = require('crypto')
 const CID = require('cids')
 const ipfsClient = require('ipfs-http-client')
-const ipfs = ipfsClient({ host: 'ipfs.infura.io', port: 5001, protocol: 'https' })
+const ipfsAPI = ipfsClient({ host: 'ipfs.infura.io', port: 5001, protocol: 'https' })
 //const feature = ml5.featureExtractor("MobileNet");
 
 var toBuffer = require('typedarray-to-buffer')
-var ACCESS_TOKEN_SECRET = crypto.randomBytes(256).toString('hex')
+var systemPubParam = crypto.randomBytes(256).toString('hex')
 var encImgHash
 var fileLink
 var imgHash
@@ -43,7 +43,7 @@ class App extends Component {
       window.web3 = new Web3(window.web3.currentProvider)
     }
     else {
-      window.alert('Non-Ethereum browser detected. You should consider trying MetaMask!')
+      window.alert('Non-Ethereum browser detected.')
     }
   }
 
@@ -61,7 +61,7 @@ class App extends Component {
 
     if (networkData) {
       //token generation for authorization
-      token = jwtAuth.authorizeToken({ accounts }, ACCESS_TOKEN_SECRET);
+      token = jwtAuth.authorizeToken({ accounts }, systemPubParam);
 
       //fetch contract
       const abi = ImgHash.abi
@@ -137,22 +137,22 @@ class App extends Component {
   uploadFile = Tag => {
     console.log("Submitting image to IPFS...")
 
-    var encImg = imageEncryption.fileEncryption(this.state.buffer)
-    const encryptTag = imageEncryption.labelEncryption(Tag)
+    var encryptImg = cryptMethods.imageEncryption(this.state.buffer)
+    const encryptTag = cryptMethods.tagEncryption(Tag)
     this.setState({ encryptTag })
 
     convEncImg = new Uint8Array([])
-    convEncImg = toBuffer(encImg)
+    convEncImg = toBuffer(encryptImg)
     console.log('Encrypted Image', convEncImg)
 
 
-    verifyToken = jwtAuth.verifyToken(token, ACCESS_TOKEN_SECRET);
+    verifyToken = jwtAuth.verifyToken(token, systemPubParam);
 
     if (verifyToken) {
       console.log(JSON.stringify({ message: "User is authorised, invoking uploading process", address: this.state.account, token: token, auth: true }));
 
       // Add file to the IPFS
-      ipfs.add(convEncImg, (error, result) => {
+      ipfsAPI.add(convEncImg, (error, result) => {
         encImgHash = new CID(result[0].hash).toV1().toString('base32')
         this.setState({ encImgHash })
         //console.log('IPFS result', result)
@@ -165,7 +165,7 @@ class App extends Component {
       })
 
       // Add file to the IPFS
-      ipfs.add(this.state.buffer, (error, result) => {
+      ipfsAPI.add(this.state.buffer, (error, result) => {
         imgHash = new CID(result[0].hash).toV1().toString('base32')
         this.setState({ imgHash })
         //console.log('IPFS result', result)
@@ -217,14 +217,14 @@ class App extends Component {
     }
   }
 
-  searchSubmit = imageKeyword => {
+  searchSubmit = searchQuery => {
 
-    console.log('Search Clicked:', imageKeyword)
+    console.log('Search Clicked:', searchQuery)
 
-    let keywordEntered = imageKeyword
-    var encryptedKeyword = imageEncryption.labelEncryption(keywordEntered)
+    let keywordCaptured = searchQuery
+    var encryptedQuery = cryptMethods.tagEncryption(keywordCaptured)
 
-    verifyToken = jwtAuth.verifyToken(token, ACCESS_TOKEN_SECRET);
+    verifyToken = jwtAuth.verifyToken(token, systemPubParam);
 
     if (verifyToken) {
 
@@ -233,7 +233,7 @@ class App extends Component {
       this.setState({ loading: true })
 
       if (this.state.contract) {
-        this.state.contract.methods.searchImage(encryptedKeyword)
+        this.state.contract.methods.searchImage(encryptedQuery)
           .send({ from: this.state.account, gas: 5000000, gasPrice: 20000 }, function (err, res) {
             if (err) {
               console.log("Error", err)
@@ -241,7 +241,7 @@ class App extends Component {
             }
             else {
               console.log(res)
-              imgIndex = imageIndex.searchImg(encryptedKeyword)
+              imgIndex = imageIndex.searchImg(encryptedQuery)
             }
           }).on('transactionHash', (hash) => {
             this.setState({
@@ -255,7 +255,7 @@ class App extends Component {
           })
       }
     }
-    var decImg = imageEncryption.fileDecryption(this.state.buffer)
+    var decImg = cryptMethods.imageDecryption(this.state.buffer)
     var convDecImg = new Uint8Array([])
     convDecImg = toBuffer(decImg)
     console.timeStamp(convDecImg)
@@ -263,7 +263,7 @@ class App extends Component {
   }
 
   //var b64EncImg = Buffer.from(convEncImg).toString('base64')
-  // var decImg = imageEncryption.fileDecryption(convEncImg)
+  // var decImg = cryptMethods.fileDecryption(convEncImg)
 
   // var convDecImg = new Uint8Array([])
   // convDecImg = toBuffer(decImg)

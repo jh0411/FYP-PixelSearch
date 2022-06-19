@@ -1,23 +1,23 @@
 const CryptoJS = require("crypto-js");
 
-const passKeyword = CryptoJS.lib.WordArray.random(16);
-const passFile = CryptoJS.lib.WordArray.random(16);
+const encryptPassKeyword = CryptoJS.lib.WordArray.random(16);
+const encryptPassImage = CryptoJS.lib.WordArray.random(16);
 const salt = CryptoJS.lib.WordArray.random(16);
 const iv = CryptoJS.lib.WordArray.random(16);
 
-const keywordKey = CryptoJS.PBKDF2(passKeyword, salt, {
+const symmetricKeywordKey = CryptoJS.PBKDF2(encryptPassKeyword, salt, {
     keySize: 256 / 32
 });
 
-const fileKey = CryptoJS.PBKDF2(passFile, salt, {
+const symmetricImageKey = CryptoJS.PBKDF2(encryptPassImage, salt, {
     keySize: 256 / 32
 })
 
 var cryptoMethods = {
-    fileEncryption: function (fileBuffer) {
+    imageEncryption: function (fileBuffer) {
 
-        var toEncFile = CryptoJS.enc.Utf8.parse(fileBuffer);
-        var encryptedFile = CryptoJS.AES.encrypt(toEncFile, fileKey, {
+        var encryptBuffer = CryptoJS.enc.Utf8.parse(fileBuffer);
+        var encryptedFile = CryptoJS.AES.encrypt(encryptBuffer, symmetricImageKey, {
             iv: iv, //offset
             mode: CryptoJS.mode.CBC, //encryption mode
             padding: CryptoJS.pad.Pkcs7 //padding mode
@@ -27,11 +27,11 @@ var cryptoMethods = {
         return cryptoMethods.convertWordArrayToUint8Array(convEncFile);
     },
 
-    fileDecryption: function (fileCipher) {
+    imageDecryption: function (fileCipher) {
 
-        var ciphertextStr = CryptoJS.enc.Utf8.parse(fileCipher);
-        var toDecFile = CryptoJS.enc.Base64.stringify(ciphertextStr);
-        var decryptedFile = CryptoJS.AES.decrypt(toDecFile, fileKey, {
+        var encryptCipher = CryptoJS.enc.Utf8.parse(fileCipher);
+        var toDecFile = CryptoJS.enc.Base64.stringify(encryptCipher);
+        var decryptedFile = CryptoJS.AES.decrypt(toDecFile, symmetricImageKey, {
             iv: iv, //offset
             mode: CryptoJS.mode.CBC, //encryption mode
             padding: CryptoJS.pad.Pkcs7 //padding mode
@@ -42,26 +42,15 @@ var cryptoMethods = {
         return decryptedFileString
     },
 
-    labelEncryption: function(labels){
-        var toEncLabel = CryptoJS.enc.Utf8.parse(labels)
-        var encryptedLabels = CryptoJS.AES.encrypt(toEncLabel, keywordKey, {
+    tagEncryption: function(labels){
+        var labelBuffer = CryptoJS.enc.Utf8.parse(labels)
+        var encryptedLabels = CryptoJS.AES.encrypt(labelBuffer, symmetricKeywordKey, {
             iv: iv,
             mode: CryptoJS.mode.CBC,
             padding: CryptoJS.pad.Pkcs7
         })
 
         return encryptedLabels.toString();
-    },
-
-    tokenEncryption: function(searchKey){
-        var toEncSearchToken = CryptoJS.enc.Utf8.parse(searchKey);
-        var encryptedToken = CryptoJS.AES.encrypt(toEncSearchToken, keywordKey, {
-            iv: iv,
-            mode: CryptoJS.AES.CBC,
-            padding: CryptoJS.pad.Pkcs7
-        })
-
-        return encryptedToken.toString()
     },
 
     convertWordArrayToUint8Array: function (wordArray) {
