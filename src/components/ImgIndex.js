@@ -31,6 +31,7 @@ var indexMethods = {
 
     searchImg: function(imgLabel){
         var isFound = false;
+        var timeBefore = performance.now()
         for(var i = 0; i < imageIndexTable.length; i++){
             if(imgLabel === imageIndexTable[i][0]){
                 console.log("Image data found: ", "https://ipfs.infura.io/ipfs/" + imageIndexTable[i][1])
@@ -38,7 +39,9 @@ var indexMethods = {
                 isFound = true;
             }
         }
+        var timeAfter = performance.now()
         if (isFound){
+            console.log("Image is found in " + (timeAfter - timeBefore) + " ms");
         }
         else{
             console.log("Image data not found!")

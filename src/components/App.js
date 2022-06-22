@@ -137,7 +137,12 @@ class App extends Component {
   uploadFile = Tag => {
     console.log("Submitting image to IPFS...")
 
+    var timeBefore = performance.now()
     var encryptImg = cryptMethods.imageEncryption(this.state.buffer)
+    var timeAfter = performance.now()
+
+    console.log("Image took " + (timeAfter - timeBefore) + "ms to encrypt.")
+
     const encryptTag = cryptMethods.tagEncryption(Tag)
     this.setState({ encryptTag })
 
@@ -259,7 +264,7 @@ class App extends Component {
     var convDecImg = new Uint8Array([])
     convDecImg = toBuffer(decImg)
     console.timeStamp(convDecImg)
-   //console.log("Decrypted image buffer: ", this.state.buffer)
+    //console.log("Decrypted image buffer: ", this.state.buffer)
   }
 
   //var b64EncImg = Buffer.from(convEncImg).toString('base64')
@@ -270,7 +275,7 @@ class App extends Component {
   // console.log('Decrypted Image', convDecImg)
 
   // await ipfs.add(convDecImg, (error, result) => {
-  //   //console.log('Ipfs result', result)
+  //   console.log('Ipfs result', result)
   //   imgHash = new CID(result[0].hash).toV1().toString('base32') //conver the CID of the image hash to a newer version (CIDv1)
   //   this.setState({ imgHash })
 
