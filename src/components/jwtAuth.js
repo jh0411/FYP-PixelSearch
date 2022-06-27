@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken');
 
 var authMethods = {
-    authorizeToken: function (address, privateKey) {
-        var signedToken = jwt.sign(address, privateKey, {
+    authorizeToken: function (address, secretPassphrase) {
+        var signedToken = jwt.sign(address, secretPassphrase, {
             expiresIn: 300,
         })
 
@@ -10,8 +10,8 @@ var authMethods = {
         return signedToken
     },
 
-    verifyToken: function (token, publicKey) {
-        var verifiedToken = jwt.verify(token, publicKey, {
+    verifyToken: function (token, secretPassphrase) {
+        var verifiedToken = jwt.verify(token, secretPassphrase, {
             expiresIn: 300,
         })
 

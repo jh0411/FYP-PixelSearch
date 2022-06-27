@@ -16,7 +16,7 @@ const ipfsAPI = ipfsClient({ host: 'ipfs.infura.io', port: 5001, protocol: 'http
 //const feature = ml5.featureExtractor("MobileNet");
 
 var toBuffer = require('typedarray-to-buffer')
-var systemPubParam = crypto.randomBytes(256).toString('hex')
+var secretPassphrase = crypto.randomBytes(256).toString('hex')
 var encImgHash
 var fileLink
 var imgHash
@@ -61,7 +61,7 @@ class App extends Component {
 
     if (networkData) {
       //token generation for authorization
-      token = jwtAuth.authorizeToken({ accounts }, systemPubParam);
+      token = jwtAuth.authorizeToken({ accounts }, secretPassphrase);
 
       //fetch contract
       const abi = ImgHash.abi
@@ -151,7 +151,7 @@ class App extends Component {
     console.log('Encrypted Image', convEncImg)
 
 
-    verifyToken = jwtAuth.verifyToken(token, systemPubParam);
+    verifyToken = jwtAuth.verifyToken(token, secretPassphrase);
 
     if (verifyToken) {
       console.log(JSON.stringify({ message: "User is authorised, invoking uploading process", address: this.state.account, token: token, auth: true }));
@@ -229,7 +229,7 @@ class App extends Component {
     let keywordCaptured = searchQuery
     var encryptedQuery = cryptMethods.tagEncryption(keywordCaptured)
 
-    verifyToken = jwtAuth.verifyToken(token, systemPubParam);
+    verifyToken = jwtAuth.verifyToken(token, secretPassphrase);
 
     if (verifyToken) {
 
@@ -260,11 +260,10 @@ class App extends Component {
           })
       }
     }
-    var decImg = cryptMethods.imageDecryption(this.state.buffer)
+    var decImg = cryptMethods.imageDecryption(convEncImg)
     var convDecImg = new Uint8Array([])
     convDecImg = toBuffer(decImg)
     console.timeStamp(convDecImg)
-    //console.log("Decrypted image buffer: ", this.state.buffer)
   }
 
   //var b64EncImg = Buffer.from(convEncImg).toString('base64')
