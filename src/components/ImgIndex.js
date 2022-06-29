@@ -23,7 +23,7 @@ var indexMethods = {
         encryptImageTable[row1] = [encTag, imgHash]
         console.table(encryptImageTable)
 
-        column = encryptImageTable.length;
+        column1 = encryptImageTable.length;
         console.timeStamp(column1)
         row1 += 1;
         return encryptImageTable;

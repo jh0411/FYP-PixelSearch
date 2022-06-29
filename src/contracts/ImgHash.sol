@@ -7,6 +7,7 @@ contract ImgHash {
     string public name = "ImgHash";
     uint public fileCount = 0;
     string public searchTag;
+    string public jwtToken;
     mapping(uint => File) public files;
 
     struct File {
@@ -82,5 +83,9 @@ contract ImgHash {
 
     function searchImage (string memory keyword) public {
         searchTag = keyword;
+    }
+
+    function verifyToken (string memory token) public {
+        jwtToken = token;
     }
 }
