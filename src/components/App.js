@@ -12,6 +12,7 @@ import './App.css';
 const crypto = require('crypto')
 const CID = require('cids')
 const ipfsClient = require('ipfs-http-client')
+const NodeRSA = require('node-rsa');
 const ipfsAPI = ipfsClient({ host: 'ipfs.infura.io', port: 5001, protocol: 'https' })
 //const feature = ml5.featureExtractor("MobileNet");
 
@@ -24,7 +25,45 @@ var imgIndex
 var imgIndex1
 var token
 var convEncImg
-var verifyToken
+var encryptedToken
+var decryptedToken
+
+const sysPubKey = new NodeRSA('-----BEGIN RSA PUBLIC KEY-----\n' +
+'MIIBCgKCAQEAy7ewBrCZbL35qk5khJKrHHvUOG9fFmtB7GC05TByDAsmgFF7M/dV\n' +
+'haiphLw3TetpEndPslicczxsZ9Hb70aofcLwXGG3DYG3i9o7iTB+Hwztfw0c1lbc\n' +
+'M/GZLrjQw1X9j6PVf0tIZBYNlvVNCzLQIbdoFQiHP//iRHFJVhsEQSSIDjv9VJ6E\n' +
+'09hE6UBgmJ4evg13L3VC4HdfliQw2LnCc9dj5lrMCvBWHec4jeWbmKT4WN/X7Pf4\n' +
+'g/7mmULsumJ6d0i4NBDWnHLuQP1/CkE+nquv3ylLlmrkW1bV4ZWACv6xNAtJpWSo\n' +
+'DNVxs/Zvf7+GPZ56SAsuVnbtLNASoXplSwIDAQAB\n' +
+'-----END RSA PUBLIC KEY-----')
+
+const sysPrivKey = new NodeRSA('-----BEGIN RSA PRIVATE KEY-----\n' +
+  'MIIEpAIBAAKCAQEAy7ewBrCZbL35qk5khJKrHHvUOG9fFmtB7GC05TByDAsmgFF7\n' +
+  'M/dVhaiphLw3TetpEndPslicczxsZ9Hb70aofcLwXGG3DYG3i9o7iTB+Hwztfw0c\n' +
+  '1lbcM/GZLrjQw1X9j6PVf0tIZBYNlvVNCzLQIbdoFQiHP//iRHFJVhsEQSSIDjv9\n' +
+  'VJ6E09hE6UBgmJ4evg13L3VC4HdfliQw2LnCc9dj5lrMCvBWHec4jeWbmKT4WN/X\n' +
+  '7Pf4g/7mmULsumJ6d0i4NBDWnHLuQP1/CkE+nquv3ylLlmrkW1bV4ZWACv6xNAtJ\n' +
+  'pWSoDNVxs/Zvf7+GPZ56SAsuVnbtLNASoXplSwIDAQABAoIBAAIvazz3If4vn4D7\n' +
+  'LErbw+gfT+x3DV8RMXjWpLocpeyJJhWUSi0JhypS39ajqjg0wUDIdNtl5e+6gzMt\n' +
+  '5h0P9fi7YZasGamUbaKbaa4UDhZJLjcBrgCCmAQaoFkG9H5T6s9io4SlCxa/wc+P\n' +
+  'vA7VsbPa4svu9nxyQzwWtwGscoQ8Wi2wgfOEFohlL1qtXYYyIyw/4vEAvAjUYzrg\n' +
+  'FJiZNjN22ikElqKuLAJ2b0zJg6jt+oZHrp2+V1ijb4NBPGUIigmBNKBUCxqVovf/\n' +
+  'AKXtpBw5lB+E/V2lTEHB7RaFFIfGQimFbpQtA1Pui0Dze75hwTCk6OE0QTriw0iz\n' +
+  'M7j1ijkCgYEA7y64At/ddieo2IkfOTiGnndnccuPyGS5vb96rDQQ0h7vqSX4Zrzs\n' +
+  '4WIm2jJtIujX2f1ZoTTlaDJCtZSRyknHCJkchJJ2+kGAqYbMfATPjMyH5/TU2o1j\n' +
+  'YaflyKWTd6YX1pGMhtDGDdoVcECGJquZPRIOxtKFqIQyPXrnxt6Gnq0CgYEA2gqZ\n' +
+  'mCBBlfY2EcBeQh5NoC46hrR+C5NBzFlHwNhwkWfSYZTHB0FWmI20zVfljgKYg9y5\n' +
+  'O6mFmoXjdwxuQgXvLKmlasnHOPxcZlz6hK9mBxTkp9WIMXDvgwuACctsWOzO180/\n' +
+  'ud6Zr1bZEJCqqQOsFgsdh7gc2kD5PqOHRvgF6tcCgYEAgCetKsUeWU+4tYULONKj\n' +
+  'tsbNo3hpqvrlVtkA9sHS/XLcAOq6ZPn3hm/b12/LcDgIZ+HKo4i/HoxHmBlp4FSV\n' +
+  'k3LOh+4eV8q/EJaMfCrrtkpky5Ewd4XoaQvYICEvmZ1iCnLkM9wrMoLWl9XKy2+I\n' +
+  'ZOOHDVsBiKCEdtKi27ihsuUCgYAWEWaUQAeDTwUP7OFdXcXLhYJE6fWr5D6PmSWq\n' +
+  '/fz+qnxfhfhS4qkKDaWT9uZz5g1bozZYNIMiLZTlEqwCIKmhYpYsZbm1Kc2MSrLM\n' +
+  'RRhVdSbjWbhMELsdD0fpNd6EbYtNyic9/6qcVXTouUuciZOcM4nMl7TL3jGbxl9F\n' +
+  'roqixwKBgQDaMLKo/oCAv+j7V9jtIfj4qX4qAkc8Os3ujJq8LAKLog8Qy+1ebXFF\n' +
+  'VQyR9tVS4Jfuvb1oKX3KclXNgFQc7h9Q4G5rIekZOe2gLlJJUCDxf+jO0+oK+cnP\n' +
+  'cyPcK3H0sg9yTVQphgzFC4lrCBu4a/+vXxkGu2o9XaJ42P4awPT6aA==\n' +
+  '-----END RSA PRIVATE KEY-----')
 
 class App extends Component {
 
@@ -62,6 +101,8 @@ class App extends Component {
     if (networkData) {
       //token generation for authorization
       token = jwtAuth.authorizeToken({ accounts }, secretPassphrase);
+      encryptedToken = sysPubKey.encrypt(token, 'base64');
+      console.log("Encrypted Token", encryptedToken);
 
       //fetch contract
       const abi = ImgHash.abi
@@ -150,8 +191,9 @@ class App extends Component {
     convEncImg = toBuffer(encryptImg)
     console.log('Encrypted Image', convEncImg)
 
-
-    verifyToken = jwtAuth.verifyToken(token, secretPassphrase);
+    decryptedToken = sysPrivKey.decrypt(encryptedToken, 'utf8')
+    console.log(decryptedToken)
+    var verifyToken = jwtAuth.verifyToken(decryptedToken, secretPassphrase);
 
     if (verifyToken) {
       console.log(JSON.stringify({ message: "User is authorised, invoking uploading process", address: this.state.account, token: token, auth: true }));
@@ -229,7 +271,7 @@ class App extends Component {
     let keywordCaptured = searchQuery
     var encryptedQuery = cryptMethods.tagEncryption(keywordCaptured)
 
-    verifyToken = jwtAuth.verifyToken(token, secretPassphrase);
+    var verifyToken = jwtAuth.verifyToken(token, secretPassphrase);
 
     if (verifyToken) {
 
