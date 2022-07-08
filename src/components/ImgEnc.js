@@ -1,7 +1,6 @@
 const CryptoJS = require("crypto-js");
 
 const encryptPassKeyword = CryptoJS.lib.WordArray.random(16);
-const encryptPassImage = CryptoJS.lib.WordArray.random(16);
 const salt = CryptoJS.lib.WordArray.random(16);
 const iv = CryptoJS.lib.WordArray.random(16);
 
@@ -9,16 +8,20 @@ const symmetricKeywordKey = CryptoJS.PBKDF2(encryptPassKeyword, salt, {
     keySize: 256 / 32
 });
 
-const symmetricImageKey = CryptoJS.PBKDF2(encryptPassImage, salt, {
-    keySize: 256 / 32
-})
-
 var cryptoMethods = {
     imageEncryption: function (fileBuffer) {
+        
+        const encryptPassImage = CryptoJS.lib.WordArray.random(16);
+        var saltValue = CryptoJS.lib.WordArray.random(16);
+        var imgIV = CryptoJS.lib.WordArray.random(16);
+
+        const symmetricImageKey = CryptoJS.PBKDF2(encryptPassImage, saltValue, {
+            keySize: 256 / 32
+        })
 
         var encryptBuffer = CryptoJS.enc.Utf8.parse(fileBuffer);
         var encryptedFile = CryptoJS.AES.encrypt(encryptBuffer, symmetricImageKey, {
-            iv: iv, //offset
+            iv: imgIV, //offset
             mode: CryptoJS.mode.CBC, //encryption mode
             padding: CryptoJS.pad.Pkcs7 //padding mode
         })
@@ -29,10 +32,18 @@ var cryptoMethods = {
 
     imageDecryption: function (fileCipher) {
 
+        const encryptPassImage = CryptoJS.lib.WordArray.random(16);
+        var saltValue = CryptoJS.lib.WordArray.random(16);
+        var imgIV = CryptoJS.lib.WordArray.random(16);
+
+        const symmetricImageKey = CryptoJS.PBKDF2(encryptPassImage, saltValue, {
+            keySize: 256 / 32
+        })
+
         var encryptCipher = CryptoJS.enc.Utf8.parse(fileCipher);
         var toDecFile = CryptoJS.enc.Base64.stringify(encryptCipher);
         var decryptedFile = CryptoJS.AES.decrypt(toDecFile, symmetricImageKey, {
-            iv: iv, //offset
+            iv: imgIV, //offset
             mode: CryptoJS.mode.CBC, //encryption mode
             padding: CryptoJS.pad.Pkcs7 //padding mode
         });

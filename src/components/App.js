@@ -192,7 +192,7 @@ class App extends Component {
     console.log('Encrypted Image', convEncImg)
 
     decryptedToken = sysPrivKey.decrypt(encryptedToken, 'utf8')
-    console.log(decryptedToken)
+    console.log("Decrypted Token",decryptedToken)
     var verifyToken = jwtAuth.verifyToken(decryptedToken, secretPassphrase);
 
     if (verifyToken) {
@@ -271,6 +271,8 @@ class App extends Component {
     let keywordCaptured = searchQuery
     var encryptedQuery = cryptMethods.tagEncryption(keywordCaptured)
 
+    decryptedToken = sysPrivKey.decrypt(encryptedToken, 'utf8')
+    console.log("Decrypted Token",decryptedToken)
     var verifyToken = jwtAuth.verifyToken(token, secretPassphrase);
 
     if (verifyToken) {
