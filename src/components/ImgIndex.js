@@ -37,6 +37,15 @@ var indexMethods = {
                 console.log("Image data found: ", "https://ipfs.infura.io/ipfs/" + imageIndexTable[i][1])
                 sessionStorage.setItem("retrieveLink", "https://ipfs.infura.io/ipfs/" + imageIndexTable[i][1]);
                 isFound = true;
+
+                const anchor = document.createElement("a");
+                anchor.href = 'https://ipfs.infura.io/ipfs/' + imageIndexTable[i][1];
+                anchor.download = imageIndexTable[i][1];
+        
+                document.body.appendChild(anchor);
+                anchor.setAttribute("target", "_blank");
+                anchor.click();
+                document.body.removeChild(anchor);
             }
         }
         var timeAfter = performance.now()
@@ -44,7 +53,7 @@ var indexMethods = {
             console.log("Image is found in " + (timeAfter - timeBefore) + " ms");
         }
         else{
-            console.log("Image data not found!")
+            window.alert("Image data not found!")
         }
     }
 }
